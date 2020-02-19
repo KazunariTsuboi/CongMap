@@ -30,6 +30,7 @@
 var map = L.map('map');
 
 L.tileLayer('./tiles/{z}/{x}/{y}.png', {
+	maxZoom: 22
 }).addTo(map);
 
 map.setView([35.49000, 139.44700], 19); // 南林間KH

@@ -36,7 +36,7 @@
 <script>
 // Locate
 var option = {
-  position: 'topright',
+  position: 'topleft',
   strings: {
       title: "現在地を表示",
       popup: "いまここ"
@@ -50,10 +50,20 @@ var map = L.map('map');
 var lc = L.control.locate(option).addTo(map);
 
 L.tileLayer('./tiles/{z}/{x}/{y}.png', {
-	maxZoom: 22
+    maxNativeZoom: 20,
+	maxZoom: 24
 }).addTo(map);
 
-L.marker([35.49076, 139.44735],{title:"王国会館"}).addTo(map);
+var mapMarker = L.marker([35.49076, 139.44735],{
+    title:"王国会館",
+}).addTo(map);
+
+mapMarker.bindPopup('王国会館').openPopup();
+
+L.control.scale({
+    imperial: false,
+    metric: true
+}).addTo(map);
 
 
 map.setView([35.4907, 139.4474], 20); // 南林間KH

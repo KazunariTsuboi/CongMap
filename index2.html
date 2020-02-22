@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0, ,user-scalable=no" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>南林間会衆区域地図テスト</title>
+
+ <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+   crossorigin=""/>
+
+ <script src="//code.jquery.com/jquery-2.1.1.min.js"></script>
+ <script src="js/TileLayer.GeoJSON.js"></script>
+ <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+   integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+   crossorigin=""></script>
+
+<!-- plugin -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="css/L.Control.Locate.min.css" />
+    <script src="js/L.Control.Locate.min.js"></script>
+<!-- plugin -->
+
+
+<style>
+  body {padding: 0; margin: 0}
+  html, body {height: 100%; width: 100%;} 
+  #map {height: 100%; width: 100%;} /* スマホでは画面いっぱい表示させる */
+</style>
+</head>
+
+//<body>
+//
+//<div id="map"></div>
+//
+//<script>
+//// Locate
+//var option = {
+//  position: 'topleft',
+//  strings: {
+//      title: "現在地を表示",
+//      popup: "いまここ"
+//  },
+//  locateOptions: {
+//    maxZoom: 16
+//  }
+//}
+//
+//var map = L.map('map');
+//var lc = L.control.locate(option).addTo(map);
+//
+//L.tileLayer('./tiles/{z}/{x}/{y}.png', {
+//    maxNativeZoom: 20,
+//	maxZoom: 24
+//}).addTo(map);
+//
+//var mapMarker = L.marker([35.49076, 139.44735],{
+//    title:"王国会館",
+//}).addTo(map);
+//
+//mapMarker.bindPopup('王国会館').openPopup();
+//
+//L.control.scale({
+//    imperial: false,
+//    metric: true
+//}).addTo(map);
+//
+//
+//map.setView([35.4907, 139.4474], 20); // 南林間KH
+////lc.start();
+//</script>
+//</body>
+
+<body>
+<script>
+    var map = L.map('map');
+    L.tileLayer('./tiles/{z}/{x}/{y}.png', {
+        maxNativeZoom: 20,
+        maxZoom: 24,
+    }).addTo(map);
+//    map.setView([35.85556, 139.65117], 15);
+      map.setView([35.4907, 139.4474], 16); // 南林間KH
+
+    var style = {
+        "clickable": true,
+        "color": "#00D",
+        "fillColor": "#00D",
+        "weight": 1.0,
+        "opacity": 0.3,
+        "fillOpacity": 0.2
+    };
+    var hoverStyle = {
+        "fillOpacity": 0.5
+    };
+
+    var geojsonURL = 'http://localhost:8000/api/v2/polygon/{z}/{x}/{y}.geojson';
+    var geojsonTileLayer = new L.TileLayer.GeoJSON(geojsonURL, {
+            clipTiles: true,
+            unique: function (feature) {
+                return feature.id;
+            }
+        }, {
+            style: style,
+            onEachFeature: function (feature, layer) {
+                if (feature.properties) {
+                    var popupString = '<div class="popup">';
+                    for (var k in feature.properties) {
+                        var v = feature.properties[k];
+                        popupString += k + ': ' + v + '<br />';
+                    }
+                    popupString += '</div>';
+                    layer.bindPopup(popupString);
+                }
+                if (!(layer instanceof L.Point)) {
+                    layer.on('mouseover', function () {
+                        layer.setStyle(hoverStyle);
+                    });
+                    layer.on('mouseout', function () {
+                        layer.setStyle(style);
+                    });
+                }
+            }
+        }
+    );
+    map.addLayer(geojsonTileLayer);
+</script>
+</body>
+</html>
+</body>
+</html>

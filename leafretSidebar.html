@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0, ,user-scalable=no" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+    <title>南林間会衆区域地図テスト</title>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
+       integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+       crossorigin=""/>
+    <link rel="stylesheet" href="./css/leaflet-sidebar.css" />
+
+
+<style type="text/css">
+    body {
+      margin: 0;
+    }
+
+    html, body, #leaflet {
+      height: 100%;
+    }
+
+    .popup-table {
+      width: 100%;
+    }
+
+    .popup-table-row {
+      background-color: grey;
+    }
+</style>
+
+</head>
+
+<body>
+    <div id="leaflet"></div>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.11.3.min.js"></script>
+     <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
+       integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
+       crossorigin=""></script>
+    <script src="./js/leaflet-sidebar.js"></script>
+<script>
+var template = '<form id="popup-form">\
+  <label for="input-speed">New speed:</label>\
+  <input id="input-speed" class="popup-input" type="number" />\
+  <table class="popup-table">\
+    <tr class="popup-table-row">\
+      <th class="popup-table-header">Arc numer:</th>\
+      <td id="value-arc" class="popup-table-data"></td>\
+    </tr>\
+    <tr class="popup-table-row">\
+      <th class="popup-table-header">Current speed:</th>\
+      <td id="value-speed" class="popup-table-data"></td>\
+    </tr>\
+  </table>\
+  <button id="button-submit" type="button">Save Changes</button>\
+</form>';
+
+
+function layerClickHandler (e) {
+  var marker = e.target,
+      properties = e.target.feature.properties;
+
+sidebar.close(); 
+sidebar.removePanel('homeinfo');
+
+/* add a new panel */
+    var panelContent = {
+        id: 'homeinfo',                     // UID, used to access the panel
+        tab: '<i class="fa fa-gear"></i>',  // content can be passed as HTML string,
+        pane: properties.pk,
+        title: '訪問履歴:' + properties.pk,              // an optional pane header
+        position: 'top'                  // optional vertical alignment, defaults to 'top'
+    };
+
+    sidebar.addPanel(panelContent);
+//    sidebar.open('homeinfo');
+
+
+  if (marker.hasOwnProperty('_popup')) {
+    marker.unbindPopup();
+  }
+
+  marker.bindPopup(template);
+  marker.openPopup();
+
+  L.DomUtil.get('value-arc').textContent = properties.pk;
+  L.DomUtil.get('value-speed').textContent = properties.pk;
+
+  var inputSpeed = L.DomUtil.get('input-speed');
+  inputSpeed.value = properties.pk;
+  L.DomEvent.addListener(inputSpeed, 'change', function (e) {
+    properties.pk = e.target.value;
+  });
+
+  var buttonSubmit = L.DomUtil.get('button-submit');
+  L.DomEvent.addListener(buttonSubmit, 'click', function (e) {
+    marker.closePopup();
+  });
+
+}
+
+
+var style = {
+    "clickable": true,
+    "color": "#00D",
+    "fillColor": "#00D",
+    "weight": 1.0,
+    "opacity": 0.3,
+    "fillOpacity": 0.2
+};
+
+var hoverStyle = {
+    "fillOpacity": 0.5
+};
+
+
+$.getJSON("http://192.168.100.3:8000/api/v1/A1.geojson", function (data) {
+
+
+    map = L.map('leaflet', {
+      'closePopupOnClick': true,
+      'center': [35.5, 139.443],
+      'zoom': 18,
+      'layers': [
+        L.tileLayer('http://a.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+        }),
+
+        L.geoJson(data, {
+          style: style,
+          onEachFeature: function (feature, layer) {
+            layer.on('mouseover', function () {
+                layer.setStyle(hoverStyle);
+            });
+            layer.on('mouseout', function () {
+                layer.setStyle(style);
+            });
+            layer.on('click', layerClickHandler);
+          }
+        })
+      ]
+
+    });
+
+    sidebar = L.control.sidebar({
+            autopan: false,       // whether to maintain the centered map point when opening the sidebar
+            closeButton: true,    // whether t add a close button to the panes
+            container: 'sidebar', // the DOM container or #ID of a predefined sidebar container that should be used
+            position: 'left',     // left or right
+    }).addTo(map);
+
+});
+
+</script>
+</body>
+</html>
